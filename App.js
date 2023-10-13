@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
 import { theme } from "./theme";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { EvilIcons } from "@expo/vector-icons";
 
 const STORAGE_KEY = "@toDos";
 
@@ -23,7 +25,7 @@ export default function App() {
       const value = await AsyncStorage.getItem(STORAGE_KEY);
       const obj = JSON.parse(value);
       setToDos(obj);
-    } catch {
+    } catch (e) {
       console("에러가 발생하였습니다.");
     }
   };
@@ -36,9 +38,28 @@ export default function App() {
     try {
       const jsonValue = JSON.stringify(todos);
       await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
-    } catch {
+    } catch (e) {
       console("에러가 발생하였습니다.");
     }
+  };
+  const deleteToDo = (key) => {
+    Alert.alert("Delete Todo", "Are you sure to delete Todo?", [
+      {
+        text: "delete",
+        onPress: () => {
+          const newToDos = { ...toDos };
+          delete newToDos[key];
+          setToDos(newToDos);
+          saveToDos(newToDos);
+        },
+      },
+      {
+        text: "No",
+        onPress: () => {
+          return;
+        },
+      },
+    ]);
   };
 
   useEffect(() => {
@@ -96,6 +117,9 @@ export default function App() {
           toDos[key].isWork === isWork ? (
             <View style={styles.todo} key={key}>
               <Text style={styles.todoText}>{toDos[key].title}</Text>
+              <TouchableOpacity onPress={() => deleteToDo(key)}>
+                <EvilIcons name="trash" size={24} color={theme.gray} />
+              </TouchableOpacity>
             </View>
           ) : null
         )}
@@ -133,6 +157,9 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     paddingHorizontal: 10,
     paddingVertical: 10,
+    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "center",
   },
   todoText: {
     fontSize: 20,
