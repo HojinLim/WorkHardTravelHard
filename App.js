@@ -12,14 +12,35 @@ import { theme } from "./theme";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EvilIcons } from "@expo/vector-icons";
+import Checkbox from "expo-checkbox";
 
 const STORAGE_KEY = "@toDos";
+const STORAGE_IS_WORK = "@isWork";
 
 export default function App() {
   const [isWork, setWork] = useState(true);
-  const work = () => setWork(true);
-  const travel = () => setWork(false);
+  const work = () => {
+    setWork(true);
+    changeWork(true);
+  };
+  const travel = () => {
+    setWork(false);
+    changeWork(false);
+  };
+
+  const changeWork = async (work) => {
+    await AsyncStorage.removeItem(STORAGE_IS_WORK);
+    if (work) {
+      await AsyncStorage.setItem(STORAGE_IS_WORK, "true");
+    } else {
+      await AsyncStorage.setItem(STORAGE_IS_WORK, "false");
+    }
+  };
+
   const [toDos, setToDos] = useState({});
+
+  const [isChecked, setChecked] = useState(false);
+
   const loadTodos = async () => {
     try {
       const value = await AsyncStorage.getItem(STORAGE_KEY);
@@ -61,10 +82,19 @@ export default function App() {
       },
     ]);
   };
+  const loadIsWork = async () => {
+    try {
+      const isWork = await AsyncStorage.getItem(STORAGE_IS_WORK);
+      isWork === "true" ? setWork(true) : setWork(false);
+    } catch (e) {
+      console.log(e.message);
+    }
+  };
 
   useEffect(() => {
     // 마운트 될 때 실행
     loadTodos();
+    loadIsWork();
   }, []);
 
   const onSubmit = async () => {
@@ -116,9 +146,14 @@ export default function App() {
         {Object.keys(toDos).map((key) =>
           toDos[key].isWork === isWork ? (
             <View style={styles.todo} key={key}>
-              <Text style={styles.todoText}>{toDos[key].title}</Text>
+              <View style={{ flexDirection: "row" }}>
+                <Checkbox value={isChecked} onValueChange={setChecked} />
+
+                <Text style={styles.todoText}>{toDos[key].title}</Text>
+              </View>
+
               <TouchableOpacity onPress={() => deleteToDo(key)}>
-                <EvilIcons name="trash" size={24} color={theme.gray} />
+                <EvilIcons name="trash" size={24} color="black" />
               </TouchableOpacity>
             </View>
           ) : null
