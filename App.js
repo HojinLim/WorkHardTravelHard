@@ -8,33 +8,56 @@ import {
   View,
 } from "react-native";
 import { theme } from "./theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const STORAGE_KEY = "@toDos";
 
 export default function App() {
   const [isWork, setWork] = useState(true);
   const work = () => setWork(true);
   const travel = () => setWork(false);
   const [toDos, setToDos] = useState({});
+  const loadTodos = async () => {
+    try {
+      const value = await AsyncStorage.getItem(STORAGE_KEY);
+      const obj = JSON.parse(value);
+      setToDos(obj);
+    } catch {
+      console("에러가 발생하였습니다.");
+    }
+  };
   const [inputText, setInputText] = useState("");
   const onChangeText = (payload) => {
     setInputText(payload);
   };
-  const onSubmit = () => {
+
+  const saveToDos = async (todos) => {
+    try {
+      const jsonValue = JSON.stringify(todos);
+      await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+    } catch {
+      console("에러가 발생하였습니다.");
+    }
+  };
+
+  useEffect(() => {
+    // 마운트 될 때 실행
+    loadTodos();
+  }, []);
+
+  const onSubmit = async () => {
     if (inputText === "") {
       alert("빈 값이 있습니다");
       return;
     }
 
-    // 다른 방법
-    // const newToDos = Object.assign({}, toDos, {
-    //   [Date.now()]: { title: inputText, work: isWork },
-    // });
     const newToDos = {
       ...toDos,
       [Date.now()]: { title: inputText, isWork },
     };
     setToDos(newToDos);
-
+    await saveToDos(newToDos);
     setInputText("");
   };
   // console.log(toDos);
@@ -70,7 +93,7 @@ export default function App() {
       </View>
       <ScrollView>
         {Object.keys(toDos).map((key) =>
-          toDos[key].isWork=== isWork ? (
+          toDos[key].isWork === isWork ? (
             <View style={styles.todo} key={key}>
               <Text style={styles.todoText}>{toDos[key].title}</Text>
             </View>
