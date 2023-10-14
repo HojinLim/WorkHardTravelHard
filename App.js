@@ -168,8 +168,18 @@ export default function App() {
                   value={toDos[key].isDone}
                   onValueChange={() => setCheckHandler(key)}
                 />
-
-                <Text style={styles.todoText}>{toDos[key].title}</Text>
+                {toDos[key].isDone === true ? (
+                  <Text
+                    style={{
+                      ...styles.todoText,
+                      textDecorationLine: "line-through",
+                    }}
+                  >
+                    {toDos[key].title}
+                  </Text>
+                ) : (
+                  <Text style={styles.todoText}>{toDos[key].title}</Text>
+                )}
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <TouchableOpacity>
