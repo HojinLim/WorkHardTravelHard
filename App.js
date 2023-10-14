@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EvilIcons, Feather } from "@expo/vector-icons";
 import Checkbox from "expo-checkbox";
+import EditText from "./components/EditText";
+import { globalStyles } from "./components/style/globalStyle";
 
 const STORAGE_KEY = "@toDos";
 const STORAGE_IS_WORK = "@isWork";
@@ -94,6 +96,16 @@ export default function App() {
       console.log(e.message);
     }
   };
+  const editTodo= (key)=>{
+    const todo = toDos[key];
+    const newToDos = {
+      ...toDos,
+      [key]: { ...toDos[key], isEdit: !todo.isEdit },
+    };
+    setToDos(newToDos)
+
+
+  }
 
   useEffect(() => {
     // 마운트 될 때 실행
@@ -109,7 +121,7 @@ export default function App() {
 
     const newToDos = {
       ...toDos,
-      [Date.now()]: { title: inputText, isWork, isDone: false },
+      [Date.now()]: { title: inputText, isWork, isDone: false, isEdit: false },
     };
     setToDos(newToDos);
     await saveToDos(newToDos);
@@ -133,6 +145,7 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <View style={styles.header}>
+    
         <TouchableOpacity onPress={work}>
           <Text
             style={{ ...styles.btnText, color: isWork ? "white" : theme.gray }}
@@ -178,11 +191,13 @@ export default function App() {
                     {toDos[key].title}
                   </Text>
                 ) : (
-                  <Text style={styles.todoText}>{toDos[key].title}</Text>
+
+                  <EditText title={toDos[key].title}/>
+              
                 )}
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={()=> editTodo(key)}>
                   <Feather name="edit-3" size={24} color="black" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => deleteToDo(key)}>
