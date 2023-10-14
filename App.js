@@ -11,7 +11,7 @@ import {
 import { theme } from "./theme";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { EvilIcons } from "@expo/vector-icons";
+import { EvilIcons, Feather } from "@expo/vector-icons";
 import Checkbox from "expo-checkbox";
 
 const STORAGE_KEY = "@toDos";
@@ -22,10 +22,12 @@ export default function App() {
   const work = () => {
     setWork(true);
     changeWork(true);
+    console.log(toDos);
   };
   const travel = () => {
     setWork(false);
     changeWork(false);
+    console.log(toDos);
   };
 
   const changeWork = async (work) => {
@@ -44,8 +46,10 @@ export default function App() {
   const loadTodos = async () => {
     try {
       const value = await AsyncStorage.getItem(STORAGE_KEY);
-      const obj = JSON.parse(value);
-      setToDos(obj);
+      if (value) {
+        const obj = JSON.parse(value);
+        setToDos(obj);
+      }
     } catch (e) {
       console("에러가 발생하였습니다.");
     }
@@ -105,13 +109,26 @@ export default function App() {
 
     const newToDos = {
       ...toDos,
-      [Date.now()]: { title: inputText, isWork },
+      [Date.now()]: { title: inputText, isWork, isDone: false },
     };
     setToDos(newToDos);
     await saveToDos(newToDos);
     setInputText("");
   };
-  // console.log(toDos);
+
+  const setCheckHandler = (key) => {
+    const todo = toDos[key];
+    const newToDos = {
+      ...toDos,
+      [key]: { ...toDos[key], isDone: !todo.isDone },
+    };
+
+    setToDos(newToDos);
+    saveToDos(newToDos);
+
+    console.log(toDos[key]);
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -147,14 +164,21 @@ export default function App() {
           toDos[key].isWork === isWork ? (
             <View style={styles.todo} key={key}>
               <View style={{ flexDirection: "row" }}>
-                <Checkbox value={isChecked} onValueChange={setChecked} />
+                <Checkbox
+                  value={toDos[key].isDone}
+                  onValueChange={() => setCheckHandler(key)}
+                />
 
                 <Text style={styles.todoText}>{toDos[key].title}</Text>
               </View>
-
-              <TouchableOpacity onPress={() => deleteToDo(key)}>
-                <EvilIcons name="trash" size={24} color="black" />
-              </TouchableOpacity>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <TouchableOpacity>
+                  <Feather name="edit-3" size={24} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteToDo(key)}>
+                  <EvilIcons name="trash" size={30} color="black" />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : null
         )}
